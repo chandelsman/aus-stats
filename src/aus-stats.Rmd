@@ -1,0 +1,196 @@
+---
+title: ''
+output: 
+  html_document
+params:
+  dt_start: 
+    label: "Start Date"
+    input: date
+    value: !r Sys.Date() - 30
+    max: !r Sys.Date()
+  dt_end: 
+    label: "End Date"
+    input: date
+    value: !r Sys.Date() - 1
+    max: !r Sys.Date()
+  author:
+    label: "Prepared by"
+    value: "Corey Handelsman"
+editor_options: 
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(lubridate)
+library(gt)
+```
+
+```{r import-raw-data, include=FALSE}
+# Import raw data
+aus_raw <-
+  readxl::read_excel(here::here("data", "AUS 1st Quarter 2021.xlsx")) %>%
+  mutate(
+    `Original Complete Date` = date(mdy_hm(`Original Complete Date`)),
+    aus_cyto = case_when(str_detect(
+      `Cyto Screen`,
+      regex("atypia of undetermined significance|aus", ignore_case = TRUE)
+    ) ~ "AUS",
+    TRUE ~ "No_AUS"),
+    aus_path = case_when(
+      str_detect(
+        `Pathologist Diagnosis`,
+        regex("atypia of undetermined significance",
+              ignore_case = TRUE)
+      ) ~ "AUS",
+      str_detect(
+        `Pathologist Diagnosis`,
+        regex("atypia of undetermine significance",
+              ignore_case = TRUE)
+      ) ~ "AUS",
+      str_detect(
+        `Pathologist Diagnosis`,
+        regex("atypia of uncertain significance",
+              ignore_case = TRUE)
+      ) ~ "AUS",
+      str_detect(
+        `Pathologist Diagnosis`,
+        regex("atypia of unknown significance",
+              ignore_case = TRUE)
+      ) ~ "AUS",
+      str_detect(
+        `Pathologist Diagnosis`,
+        regex(
+          "focal atypical follicular cells of undetermined significance",
+          ignore_case = TRUE
+        )
+      ) ~ "AUS",
+      str_detect(
+        `Pathologist Diagnosis`,
+        regex(
+          "focal atypical cells of undetermined significance",
+          ignore_case = TRUE
+        )
+      ) ~ "AUS",
+      str_detect(
+        `Pathologist Diagnosis`,
+        regex(
+          "atypical follicular cells of undetermined significance",
+          ignore_case = TRUE
+        )
+      ) ~ "AUS",
+      TRUE ~ "No_AUS"
+    )
+  )
+```
+
+<div align = "center">
+![](sp-logo.png){width=25%}
+</div>
+
+<div style = "text-align: center">
+
+# Department of Cytology
+
+## Classification Statistics for:
+## \newline'atypia of undetermined significance'
+
+### Reporting Period: Quarter `r {lubridate::quarter(params$dt_start)}` `r {lubridate::year(params$dt_end)}`
+
+</div>
+
+<br>
+<br>
+
+```{r cytotech}
+aus_raw %>%
+  group_by(Cytotech) %>% 
+  summarise(
+    n = n(),
+    aus_cyto = sum(aus_cyto == "AUS"),
+    pct_cyto = aus_cyto / n
+  ) %>% 
+  gt(rowname_col = "Cytotech") %>% 
+  tab_header(
+    title = md("AUS Classification by Cytotech")
+  ) %>% 
+  fmt_percent(
+    columns = vars(pct_cyto),
+    decimals = 1
+  ) %>% 
+  fmt_missing(
+    everything(),
+    missing_text = "--"
+  ) %>%
+  cols_label(
+    n = "n (case parts)",
+    aus_cyto = "n (AUS)", 
+    pct_cyto = "% Classified as AUS"
+  ) %>% 
+  tab_options(table.width = pct(95),
+              heading.title.font.size = px(24),
+              heading.subtitle.font.size = px(24),
+              heading.title.font.weight = "bold",
+              heading.subtitle.font.weight = "bold",
+              column_labels.font.weight = "bold"
+  )
+```
+
+<br><br>
+
+```{r pathologist}
+aus_raw %>%
+  group_by(Pathologist) %>% 
+  summarise(
+    n = n(),
+    aus_path = sum(aus_path == "AUS"),
+    pct_path = aus_path / n
+  ) %>% 
+  gt(rowname_col = "Pathologist") %>% 
+  tab_header(
+    title = md("AUS Classification by Pathologist")
+  ) %>% 
+  fmt_percent(
+    columns = vars(pct_path),
+    decimals = 1
+  ) %>% 
+  fmt_missing(
+    everything(),
+    missing_text = "--"
+  ) %>%
+  cols_label(
+    n = "n (case parts)",
+    aus_path = "n (AUS)", 
+    pct_path = "% Classified as AUS"
+  ) %>% 
+  tab_options(table.width = pct(95),
+              heading.title.font.size = px(24),
+              heading.subtitle.font.size = px(24),
+              heading.title.font.weight = "bold",
+              heading.subtitle.font.weight = "bold",
+              column_labels.font.weight = "bold"
+  )
+  
+```
+
+```{r alternate-import, include=FALSE}
+# aus_raw <-
+#   list.files(
+#     path = here::here("data"),
+#     pattern = "^\\d{4}q\\d-aus\\.xls",
+#     full.names = TRUE
+#   ) %>%
+#   sapply(readxl::read_excel, simplify = FALSE) %>%
+#   bind_rows() %>%
+#   mutate(
+#     Released_Time = lubridate::mdy(Released_Time),
+#     Original_Complete_Date = lubridate::mdy_hm(Original_Complete_Date)
+#   )
+```
+
+<br>
+
+*Prepared by `r params$author` on `r format(as.Date(Sys.Date()), "%m/%d/%Y")`*
+
+</div>
+</div>
