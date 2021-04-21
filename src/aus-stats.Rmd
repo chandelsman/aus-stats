@@ -26,12 +26,21 @@ library(lubridate)
 library(gt)
 ```
 
-```{r import-raw-data, include=FALSE}
-# Import raw data
+```{r alternate-import, include=FALSE}
 aus_raw <-
-  readxl::read_excel(here::here("data", "AUS 1st Quarter 2021.xlsx")) %>%
+  list.files(
+    path = here::here("data"),
+    pattern = "^\\d{4}q\\d-aus.+\\.xls",
+    full.names = TRUE
+  ) %>%
+  sapply(readxl::read_excel, simplify = FALSE) %>%
+  bind_rows() %>%
   mutate(
-    `Original Complete Date` = date(mdy_hm(`Original Complete Date`)),
+    Cytotech = str_replace_all(Cytotech, "\\[x\\] ", ""),
+    Pathologist = str_replace_all(Pathologist, "\\[x\\] ", ""), 
+    Created_Date = lubridate::date(mdy_hm(Created_Date)), 
+    Released_Date = lubridate::mdy(Released_Date),
+    Original_Complete_Date = lubridate::date(mdy_hm(Original_Complete_Date)),
     aus_cyto = case_when(str_detect(
       `Cyto Screen`,
       regex("atypia of undetermined significance|aus", ignore_case = TRUE)
@@ -39,41 +48,41 @@ aus_raw <-
     TRUE ~ "No_AUS"),
     aus_path = case_when(
       str_detect(
-        `Pathologist Diagnosis`,
+       Pathologist_Diagnosis,
         regex("atypia of undetermined significance",
               ignore_case = TRUE)
       ) ~ "AUS",
       str_detect(
-        `Pathologist Diagnosis`,
+       Pathologist_Diagnosis,
         regex("atypia of undetermine significance",
               ignore_case = TRUE)
       ) ~ "AUS",
       str_detect(
-        `Pathologist Diagnosis`,
+       Pathologist_Diagnosis,
         regex("atypia of uncertain significance",
               ignore_case = TRUE)
       ) ~ "AUS",
       str_detect(
-        `Pathologist Diagnosis`,
+       Pathologist_Diagnosis,
         regex("atypia of unknown significance",
               ignore_case = TRUE)
       ) ~ "AUS",
       str_detect(
-        `Pathologist Diagnosis`,
+       Pathologist_Diagnosis,
         regex(
           "focal atypical follicular cells of undetermined significance",
           ignore_case = TRUE
         )
       ) ~ "AUS",
       str_detect(
-        `Pathologist Diagnosis`,
+       Pathologist_Diagnosis,
         regex(
           "focal atypical cells of undetermined significance",
           ignore_case = TRUE
         )
       ) ~ "AUS",
       str_detect(
-        `Pathologist Diagnosis`,
+       Pathologist_Diagnosis,
         regex(
           "atypical follicular cells of undetermined significance",
           ignore_case = TRUE
@@ -81,7 +90,67 @@ aus_raw <-
       ) ~ "AUS",
       TRUE ~ "No_AUS"
     )
-  )
+  ) %>% 
+  filter(Created_Date >= params$dt_start & 
+           Created_Date <= params$dt_end)
+```
+
+```{r import-raw-data, include=FALSE}
+# Import raw data
+# aus_raw <-
+#   readxl::read_excel(here::here("data", "AUS 1st Quarter 2021.xlsx")) %>%
+#   mutate(
+#     `Original Complete Date` = date(mdy_hm(`Original Complete Date`)),
+#     aus_cyto = case_when(str_detect(
+#       `Cyto Screen`,
+#       regex("atypia of undetermined significance|aus", ignore_case = TRUE)
+#     ) ~ "AUS",
+#     TRUE ~ "No_AUS"),
+#     aus_path = case_when(
+#       str_detect(
+#         `Pathologist Diagnosis`,
+#         regex("atypia of undetermined significance",
+#               ignore_case = TRUE)
+#       ) ~ "AUS",
+#       str_detect(
+#         `Pathologist Diagnosis`,
+#         regex("atypia of undetermine significance",
+#               ignore_case = TRUE)
+#       ) ~ "AUS",
+#       str_detect(
+#         `Pathologist Diagnosis`,
+#         regex("atypia of uncertain significance",
+#               ignore_case = TRUE)
+#       ) ~ "AUS",
+#       str_detect(
+#         `Pathologist Diagnosis`,
+#         regex("atypia of unknown significance",
+#               ignore_case = TRUE)
+#       ) ~ "AUS",
+#       str_detect(
+#         `Pathologist Diagnosis`,
+#         regex(
+#           "focal atypical follicular cells of undetermined significance",
+#           ignore_case = TRUE
+#         )
+#       ) ~ "AUS",
+#       str_detect(
+#         `Pathologist Diagnosis`,
+#         regex(
+#           "focal atypical cells of undetermined significance",
+#           ignore_case = TRUE
+#         )
+#       ) ~ "AUS",
+#       str_detect(
+#         `Pathologist Diagnosis`,
+#         regex(
+#           "atypical follicular cells of undetermined significance",
+#           ignore_case = TRUE
+#         )
+#       ) ~ "AUS",
+#       TRUE ~ "No_AUS"
+#     )
+#   )
 ```
 
 <div align = "center">
@@ -127,6 +196,9 @@ aus_raw %>%
     aus_cyto = "n (AUS)", 
     pct_cyto = "% Classified as AUS"
   ) %>% 
+  cols_width(
+    everything() ~ pct(25)
+  ) %>% 
   tab_options(table.width = pct(95),
               heading.title.font.size = px(24),
               heading.subtitle.font.size = px(24),
@@ -163,6 +235,9 @@ aus_raw %>%
     aus_path = "n (AUS)", 
     pct_path = "% Classified as AUS"
   ) %>% 
+    cols_width(
+    everything() ~ pct(25)
+  ) %>% 
   tab_options(table.width = pct(95),
               heading.title.font.size = px(24),
               heading.subtitle.font.size = px(24),
@@ -171,21 +246,6 @@ aus_raw %>%
               column_labels.font.weight = "bold"
   )
   
-```
-
-```{r alternate-import, include=FALSE}
-# aus_raw <-
-#   list.files(
-#     path = here::here("data"),
-#     pattern = "^\\d{4}q\\d-aus\\.xls",
-#     full.names = TRUE
-#   ) %>%
-#   sapply(readxl::read_excel, simplify = FALSE) %>%
-#   bind_rows() %>%
-#   mutate(
-#     Released_Time = lubridate::mdy(Released_Time),
-#     Original_Complete_Date = lubridate::mdy_hm(Original_Complete_Date)
-#   )
 ```
 
 <br>
