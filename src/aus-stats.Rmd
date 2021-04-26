@@ -6,12 +6,12 @@ params:
   dt_start: 
     label: "Start Date"
     input: date
-    value: !r Sys.Date() - 30
+    value: 2021-01-01
     max: !r Sys.Date()
   dt_end: 
     label: "End Date"
     input: date
-    value: !r Sys.Date() - 1
+    value: 2021-03-31
     max: !r Sys.Date()
   author:
     label: "Prepared by"
@@ -23,6 +23,7 @@ editor_options:
 knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(lubridate)
+library(egg)
 library(gt)
 ```
 
@@ -95,63 +96,7 @@ aus_raw <-
            Created_Date <= params$dt_end)
 ```
 
-```{r import-raw-data, include=FALSE}
-# Import raw data
-# aus_raw <-
-#   readxl::read_excel(here::here("data", "AUS 1st Quarter 2021.xlsx")) %>%
-#   mutate(
-#     `Original Complete Date` = date(mdy_hm(`Original Complete Date`)),
-#     aus_cyto = case_when(str_detect(
-#       `Cyto Screen`,
-#       regex("atypia of undetermined significance|aus", ignore_case = TRUE)
-#     ) ~ "AUS",
-#     TRUE ~ "No_AUS"),
-#     aus_path = case_when(
-#       str_detect(
-#         `Pathologist Diagnosis`,
-#         regex("atypia of undetermined significance",
-#               ignore_case = TRUE)
-#       ) ~ "AUS",
-#       str_detect(
-#         `Pathologist Diagnosis`,
-#         regex("atypia of undetermine significance",
-#               ignore_case = TRUE)
-#       ) ~ "AUS",
-#       str_detect(
-#         `Pathologist Diagnosis`,
-#         regex("atypia of uncertain significance",
-#               ignore_case = TRUE)
-#       ) ~ "AUS",
-#       str_detect(
-#         `Pathologist Diagnosis`,
-#         regex("atypia of unknown significance",
-#               ignore_case = TRUE)
-#       ) ~ "AUS",
-#       str_detect(
-#         `Pathologist Diagnosis`,
-#         regex(
-#           "focal atypical follicular cells of undetermined significance",
-#           ignore_case = TRUE
-#         )
-#       ) ~ "AUS",
-#       str_detect(
-#         `Pathologist Diagnosis`,
-#         regex(
-#           "focal atypical cells of undetermined significance",
-#           ignore_case = TRUE
-#         )
-#       ) ~ "AUS",
-#       str_detect(
-#         `Pathologist Diagnosis`,
-#         regex(
-#           "atypical follicular cells of undetermined significance",
-#           ignore_case = TRUE
-#         )
-#       ) ~ "AUS",
-#       TRUE ~ "No_AUS"
-#     )
-#   )
-```
+<br><br>
 
 <div align = "center">
 ![](sp-logo.png){width=25%}
@@ -161,16 +106,84 @@ aus_raw <-
 
 # Department of Cytology
 
-## Classification Statistics for:
-## \newline'atypia of undetermined significance'
+## Classification Rate of:
+## \newline'atypia of undetermined significance (AUS)'
 
 ### Reporting Period: Quarter `r {lubridate::quarter(params$dt_start)}` `r {lubridate::year(params$dt_end)}`
 
 </div>
 
-<br>
-<br>
+<br><br><br><br>
 
+#### Frequency of AUS Classification\*
+```{r plot-AUS, out.width = "95%", message = FALSE, warning = FALSE, fig.align = "center"}
+mean_cyto <- 
+  mean(aus_raw$aus_cyto == "AUS")
+
+mean_path <- 
+  mean(aus_raw$aus_path == "AUS")
+
+plot_cytotechs <- 
+  aus_raw %>% 
+  group_by(Cytotech) %>% 
+  summarise(
+    n = n(),
+    aus_cyto = sum(aus_cyto == "AUS"),
+    pct_cyto = aus_cyto / n, 
+    avg_cyto = sum(aus_cyto)/sum(n)
+  ) %>% 
+  ggplot(aes(x = Cytotech, y = pct_cyto)) + 
+  geom_bar(stat = "identity", width = 0.3, show.legend = FALSE) + 
+  geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
+  geom_hline(yintercept = mean_cyto, color = "blue") + 
+  ylim(0.0, 1.0) + 
+  ylab("Frequency") +
+  theme_bw() + 
+  theme(
+    plot.title = element_text(size = 20, hjust = 0.5),
+    axis.text.x = element_text(angle = 55, hjust = 1),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 14),
+    # panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+plot_paths <- 
+  aus_raw %>% 
+  group_by(Pathologist) %>% 
+  summarise(
+    n = n(),
+    aus_path = sum(aus_path == "AUS"),
+    pct_path = aus_path / n
+  ) %>% 
+  ggplot(aes(x = Pathologist, y = pct_path)) + 
+  geom_bar(stat = "identity", width = 0.7, show.legend = FALSE) + 
+  geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
+  geom_hline(yintercept = mean_path, color = "blue") + 
+  ylim(0.0, 1.0) + 
+  ylab("") + 
+  theme_bw() + 
+  theme(
+    plot.title = element_text(size = 20, hjust = 0.5),
+    axis.text.x = element_text(angle = 55, hjust = 1),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 14),
+    # panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+ggarrange(plot_cytotechs, plot_paths, nrow = 1, widths = c(2, 3))
+```
+
+<div style = "text-align: right">
+\**Dashed lines show target classification rate of 0.1 and solid lines represent overall group means.*
+</div>
+
+\newpage
+
+<br><br>
+
+#### AUS Classification by Cytotech
 ```{r cytotech}
 aus_raw %>%
   group_by(Cytotech) %>% 
@@ -180,9 +193,9 @@ aus_raw %>%
     pct_cyto = aus_cyto / n
   ) %>% 
   gt(rowname_col = "Cytotech") %>% 
-  tab_header(
-    title = md("AUS Classification by Cytotech")
-  ) %>% 
+  # tab_header(
+  #   title = md("AUS Classification by Cytotech")
+  # ) %>% 
   fmt_percent(
     columns = vars(pct_cyto),
     decimals = 1
@@ -210,6 +223,7 @@ aus_raw %>%
 
 <br><br>
 
+#### AUS Classification by Pathologist
 ```{r pathologist}
 aus_raw %>%
   group_by(Pathologist) %>% 
@@ -219,9 +233,9 @@ aus_raw %>%
     pct_path = aus_path / n
   ) %>% 
   gt(rowname_col = "Pathologist") %>% 
-  tab_header(
-    title = md("AUS Classification by Pathologist")
-  ) %>% 
+  # tab_header(
+  #   title = md("AUS Classification by Pathologist")
+  # ) %>% 
   fmt_percent(
     columns = vars(pct_path),
     decimals = 1
