@@ -96,7 +96,7 @@ aus_raw <-
            Created_Date <= params$dt_end)
 ```
 
-<br><br>
+<br>
 
 <div align = "center">
 ![](sp-logo.png){width=25%}
@@ -106,14 +106,15 @@ aus_raw <-
 
 # Department of Cytology
 
-## Classification Rate of:
-## \newline'atypia of undetermined significance (AUS)'
+## FNA of Thyroid 
+### \newline Classification Rate of:
+### \newline 'atypia of undetermined significance (AUS)'
 
 ### Reporting Period: Quarter `r {lubridate::quarter(params$dt_start)}` `r {lubridate::year(params$dt_end)}`
 
 </div>
 
-<br><br><br><br>
+<br><br>
 
 #### Frequency of AUS Classification\*
 ```{r plot-AUS, out.width = "95%", message = FALSE, warning = FALSE, fig.align = "center"}
