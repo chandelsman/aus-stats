@@ -1,22 +1,22 @@
 ---
 title: ''
-output: 
-  html_document
+output:
+  html_document: default
 params:
-  dt_start: 
-    label: "Start Date"
+  dt_start:
+    label: Start Date
     input: date
-    value: 2021-01-01
+    value: '2021-01-01'
     max: !r Sys.Date()
-  dt_end: 
-    label: "End Date"
+  dt_end:
+    label: End Date
     input: date
-    value: 2021-03-31
+    value: '2021-03-31'
     max: !r Sys.Date()
   author:
-    label: "Prepared by"
-    value: "Corey Handelsman"
-editor_options: 
+    label: Prepared by
+    value: Corey Handelsman
+editor_options:
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
@@ -177,7 +177,8 @@ ggarrange(plot_cytotechs, plot_paths, nrow = 1, widths = c(2, 3))
 ```
 
 <div style = "text-align: right">
-\**Dashed lines show target classification rate of 0.1 and solid lines represent overall group means.*
+\**Dashed lines show target classification rate of 0.1 and solid lines represent overall group means.*  
+\*\**Mean AUS classification rates were `r round(mean_cyto, 3)` for cytotechs and `r round(mean_path, 3)` for pathologists.*
 </div>
 
 \newpage
