@@ -110,7 +110,7 @@ aus_raw <-
 ### \newline Classification Rate of:
 ### \newline 'atypia of undetermined significance (AUS)'
 
-### Reporting Period: Quarter `r {lubridate::quarter(params$dt_start)}` `r {lubridate::year(params$dt_end)}`
+### Reporting Period: `r {lubridate::year(params$dt_end)} `Quarter `r {lubridate::quarter(params$dt_start)}`
 
 </div>
 
@@ -199,7 +199,7 @@ aus_raw %>%
   #   title = md("AUS Classification by Cytotech")
   # ) %>% 
   fmt_percent(
-    columns = vars(pct_cyto),
+    columns = c(pct_cyto),
     decimals = 1
   ) %>% 
   fmt_missing(
@@ -239,7 +239,7 @@ aus_raw %>%
   #   title = md("AUS Classification by Pathologist")
   # ) %>% 
   fmt_percent(
-    columns = vars(pct_path),
+    columns = c(pct_path),
     decimals = 1
   ) %>% 
   fmt_missing(
