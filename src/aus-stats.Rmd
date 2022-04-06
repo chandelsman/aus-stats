@@ -6,12 +6,12 @@ params:
   dt_start:
     label: Start Date
     input: date
-    value: '2021-01-01'
+    value: !r lubridate::floor_date(Sys.Date() - 10, "quarter")
     max: !r Sys.Date()
   dt_end:
     label: End Date
     input: date
-    value: '2021-03-31'
+    value: !r lubridate::floor_date(Sys.Date(), "quarter") - 1
     max: !r Sys.Date()
   author:
     label: Prepared by
@@ -110,7 +110,7 @@ aus_raw <-
 ### \newline Classification Rate of:
 ### \newline 'atypia of undetermined significance (AUS)'
 
-### Reporting Period: `r {lubridate::year(params$dt_end)} `Quarter `r {lubridate::quarter(params$dt_start)}`
+### Reporting Period: `r {lubridate::year(params$dt_end)} ` Quarter `r {lubridate::quarter(params$dt_start)}`
 
 </div>
 
