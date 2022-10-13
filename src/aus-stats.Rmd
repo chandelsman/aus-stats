@@ -6,7 +6,7 @@ params:
   dt_start:
     label: Start Date
     input: date
-    value: !r lubridate::floor_date(Sys.Date() - 10, "quarter")
+    value: !r lubridate::floor_date(Sys.Date() - 90, "quarter")
     max: !r Sys.Date()
   dt_end:
     label: End Date
@@ -202,7 +202,7 @@ aus_raw %>%
     columns = c(pct_cyto),
     decimals = 1
   ) %>% 
-  fmt_missing(
+  sub_missing(
     everything(),
     missing_text = "--"
   ) %>%
@@ -242,7 +242,7 @@ aus_raw %>%
     columns = c(pct_path),
     decimals = 1
   ) %>% 
-  fmt_missing(
+  sub_missing(
     everything(),
     missing_text = "--"
   ) %>%
