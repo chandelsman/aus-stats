@@ -33,9 +33,9 @@ aus_raw <-
     path = here::here("data"),
     pattern = "^\\d{4}q\\d-aus.+\\.xls",
     full.names = TRUE
-  ) %>%
-  sapply(readxl::read_excel, simplify = FALSE) %>%
-  bind_rows() %>%
+  ) |>
+  sapply(readxl::read_excel, simplify = FALSE) |>
+  bind_rows() |>
   mutate(
     Cytotech = str_replace_all(Cytotech, "\\[x\\] ", ""),
     Pathologist = str_replace_all(Pathologist, "\\[x\\] ", ""), 
@@ -91,9 +91,10 @@ aus_raw <-
       ) ~ "AUS",
       TRUE ~ "No_AUS"
     )
-  ) %>% 
+  ) |> 
   filter(Created_Date >= params$dt_start & 
-           Created_Date <= params$dt_end)
+           Created_Date <= params$dt_end, 
+         !is.na(Cytotech))
 ```
 
 <br>
@@ -125,14 +126,14 @@ mean_path <-
   mean(aus_raw$aus_path == "AUS")
 
 plot_cytotechs <- 
-  aus_raw %>% 
-  group_by(Cytotech) %>% 
+  aus_raw |> 
+  group_by(Cytotech) |> 
   summarise(
     n = n(),
     aus_cyto = sum(aus_cyto == "AUS"),
     pct_cyto = aus_cyto / n, 
     avg_cyto = sum(aus_cyto)/sum(n)
-  ) %>% 
+  ) |> 
   ggplot(aes(x = Cytotech, y = pct_cyto)) + 
   geom_bar(stat = "identity", width = 0.3, show.legend = FALSE) + 
   geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
@@ -150,13 +151,13 @@ plot_cytotechs <-
   )
 
 plot_paths <- 
-  aus_raw %>% 
-  group_by(Pathologist) %>% 
+  aus_raw |> 
+  group_by(Pathologist) |> 
   summarise(
     n = n(),
     aus_path = sum(aus_path == "AUS"),
     pct_path = aus_path / n
-  ) %>% 
+  ) |> 
   ggplot(aes(x = Pathologist, y = pct_path)) + 
   geom_bar(stat = "identity", width = 0.7, show.legend = FALSE) + 
   geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
@@ -187,33 +188,33 @@ ggarrange(plot_cytotechs, plot_paths, nrow = 1, widths = c(2, 3))
 
 #### AUS Classification by Cytotech
 ```{r cytotech}
-aus_raw %>%
-  group_by(Cytotech) %>% 
+aus_raw |>
+  group_by(Cytotech) |> 
   summarise(
     n = n(),
     aus_cyto = sum(aus_cyto == "AUS"),
     pct_cyto = aus_cyto / n
-  ) %>% 
-  gt(rowname_col = "Cytotech") %>% 
+  ) |> 
+  gt(rowname_col = "Cytotech") |> 
   # tab_header(
   #   title = md("AUS Classification by Cytotech")
-  # ) %>% 
+  # ) |> 
   fmt_percent(
     columns = c(pct_cyto),
     decimals = 1
-  ) %>% 
+  ) |> 
   sub_missing(
     everything(),
     missing_text = "--"
-  ) %>%
+  ) |>
   cols_label(
     n = "n (case parts)",
     aus_cyto = "n (AUS)", 
     pct_cyto = "% Classified as AUS"
-  ) %>% 
+  ) |> 
   cols_width(
     everything() ~ pct(25)
-  ) %>% 
+  ) |> 
   tab_options(table.width = pct(95),
               heading.title.font.size = px(24),
               heading.subtitle.font.size = px(24),
@@ -227,33 +228,33 @@ aus_raw %>%
 
 #### AUS Classification by Pathologist
 ```{r pathologist}
-aus_raw %>%
-  group_by(Pathologist) %>% 
+aus_raw |>
+  group_by(Pathologist) |> 
   summarise(
     n = n(),
     aus_path = sum(aus_path == "AUS"),
     pct_path = aus_path / n
-  ) %>% 
-  gt(rowname_col = "Pathologist") %>% 
+  ) |> 
+  gt(rowname_col = "Pathologist") |> 
   # tab_header(
   #   title = md("AUS Classification by Pathologist")
-  # ) %>% 
+  # ) |> 
   fmt_percent(
     columns = c(pct_path),
     decimals = 1
-  ) %>% 
+  ) |> 
   sub_missing(
     everything(),
     missing_text = "--"
-  ) %>%
+  ) |>
   cols_label(
     n = "n (case parts)",
     aus_path = "n (AUS)", 
     pct_path = "% Classified as AUS"
-  ) %>% 
+  ) |> 
     cols_width(
     everything() ~ pct(25)
-  ) %>% 
+  ) |> 
   tab_options(table.width = pct(95),
               heading.title.font.size = px(24),
               heading.subtitle.font.size = px(24),
