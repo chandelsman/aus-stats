@@ -21,7 +21,7 @@ Query is performed in LigoLab
 ### Case Tab
 
 - Result ID Prefix = All NGYN prefixes that are not part of UCHealth South
-    - exclude the following: NGYN (GRANDVIEW), NGYN (MHC), NGYN (MHN), NGYN (WOODLAND), NGYN OP (MHN)
+    - exclude the following: NGYN (EVMC), NGYN (GRANDVIEW), NGYN (MHC), NGYN (MHN), NGYN (WOODLAND), NGYN OP (MHN)
 
 ### Extended Tab
 
